@@ -2,26 +2,35 @@ const express = require('express');
 
 const app = express();
 
-app.get("/user", (req , res)=>{
-    res.send({user_name : "rahul", age : 21})
+app.get("/user/:id",(req , res)=>{ 
+    console.log(req.params);
+    res.send("hello user");
 })
 
-app.post("/user", (req, res)=>{
-    res.send ("user created")
+app.get("/user",(req , res)=>{ 
+    console.log(req.query);
+    res.send("hello user query");
 })
 
-app.patch("/user", (req, res)=>{
-    res.send ("user updated")
+app.get("/ab?c",(req, res)=>{
+    console.log({name:"he", age: 20});
+    res.send("hello ab?c");
 })
 
-app.delete("/user", (req, res)=>{
-    res.send ("user deleted")
+app.get("/ab+c", (req, res)=>{
+    res.send("working")
+})
+
+app.get("/ab*c", (req, res)=>{
+    res.send("hero hum")
+})
+
+app.get("/*fly/:id",(req, res)=>{
+    console.log(req.params)
+    res.send("hello fly")
 })
 
 
-app.use("/test",(req, res)=>{
-    res.send("hello form test route")
-})
 
 
 
