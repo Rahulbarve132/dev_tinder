@@ -1,25 +1,72 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
-    firstName:{
-        type: String,
+const userSchema = new mongoose.Schema( {
+  firstName: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 2,
+    maxlength: 50,
+    
+  },
+  lastName: {
+    type: String,
+    minlength: 2,
+    maxlength: 50,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true,
+    minlength: 2,
+    maxlength: 50,
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 50,
+  },
+  age: {
+    type: Number,
+    validate(value) {
+      if (value < 0) {
+        throw new Error("Age must be a positive number");
+      }
     },
-    lastName:{
-        type: String,
+    min : 18 ,
+    max : 100,
+  },
+  gender: {
+    type: String,
+    lowercase: true,
+    validate(value) {
+      if (!["male", "female", "other"].includes(value)) {
+        throw new Error("Gender data is invalid");
+      }
     },
-    email:{
-        type: String,
-    },
-    password:{
-        type: String,
-    },
-    age:{
-        type: Number,
-    },
-    gender:{
-        type: String,
-    }
+  },
+  photoUrl: {
+  type: String,
+  default: "https://www.w3schools.com/howto/img_avatar.png",
+},
+  bio:{
+    type: String,
+    default: "This is a bio",
+    minlength: 2,
+    maxlength: 50,
+  },
+  Skills:{
+    type: [String],
+    default: [],
+  }
+
+
+},
+{
+    timestamps: true,
 });
 
 module.exports = mongoose.model("User", userSchema);
- 
