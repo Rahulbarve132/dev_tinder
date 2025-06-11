@@ -2,68 +2,77 @@ const express = require("express");
 const connectDB = require("./config/database.js");
 const app = express();
 const User = require("./models/user.js");
+const {validatorSignUp} = require("./utils/validation.js");
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser')   
+const jwt = require('jsonwebtoken');
+const userAuth = require("./middlewares/auth.js");
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
-  
-  try {
+   try {
+
+  // Validate required fields
+  validatorSignUp(req);
+
+  const {firstName, lastName, email, password} = req.body;
+  const passwordHash = await bcrypt.hash(password, 10) ;
+
+  const user = new User(
+    {
+      firstName,
+      lastName,
+      email,
+      password : passwordHash,
+    }
+  );
+
+    // Store hash in your password DB);
     await user.save();
     res.send("user created");
   } catch (err) {
-    res.status(400).send("user not created", err.message);
+    res.status(400).send("ERROR : " + err.message);
   }
 });
 
-app.get("/user", async (req, res)=>{
-    try{
-        const user = await User.findOne({email: req.body.email});
-        if(!user){
-            return res.status(404).send("User not found");
-        }else{
-            return res.status(200).send(user);
-        }
-    }catch(err){
-        res.status(404).send("Error fetching user", err.message);
-    }
-})
-
-app.get("/feed", async(req, res)=>{
-    try{
-        const users = await User.find({});
-        res.status(200).send(users);
-    }catch(err){
-        res.status(404).send("Error fetching users", err.message);
-    }
-})
-
-app.patch("/user", async (req, res)=>{
-  const userId = req.body.userId;
-  const data = req.body;
-  console.log(data);
+app.post("/login", async (req ,res)=>{
   try{
-    const user = await User.findByIdAndUpdate(userId, data ,{
-      runValidators: true,
-    });
-    res.status(200).send("User updated");
+  const {email , password} = req.body ; 
+  const user = await User.findOne({email: email});
+  if(!user){
+    throw new Error("Invalid credentials");
+  }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if(isMatch){
+    const token = await jwt.sign({_id :user._id}, "DEVTINDER@123");
+
+    res.cookie("token", token)
+    return res.status(200).send("Login successful");
+  }
+  else{
+    return res.status(400).send("Invalid credentials")};
   }catch(err){
-    res.status(400).send("Error updating user", err.message);
+    res.status(400).send("Error logging in: " + err.message);
   }
-
 })
 
-app.delete("/user", async (req, res)=>{
-  const userId = req.body.userId ;
+app.get("/profile",userAuth, async (req, res)=>{
   try{
-    const user =await User.findByIdAndDelete(userId);
-    res.status(200).send("user deleted");
-    if(!user){
-      return res.status(404).send("User not found");
-  }}catch(err){
-    res.status(400).send("Error deleting user", err.message);
+    const user = req.user; 
+    res.status(200).send(user);  
+  }catch(err){
+    res.status(400).send("Error fetching profile: " + err.message);
   }
 })
+
+app.post("/sendconnectionrequest", userAuth, async (req, res) => {
+  const user = req.user;
+  res.send(user.firstName + " send the connection request")
+})
+
+
 
 connectDB()
   .then(() => {

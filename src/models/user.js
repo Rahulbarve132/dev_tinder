@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema( {
   firstName: {
@@ -20,14 +21,21 @@ const userSchema = new mongoose.Schema( {
     unique: true,
     trim: true,
     lowercase: true,
-    minlength: 2,
-    maxlength: 50,
+    validate(value){
+        if(!validator.isEmail(value)){
+            throw new Error("Email is invalid");
+        }
+    }
   },
   password: {
     type: String,
     required: true,
     minlength: 2,
-    maxlength: 50,
+    validate(value){
+        if(!validator.isStrongPassword(value)){
+            throw new Error("Password is weak" + value);
+        }
+    }
   },
   age: {
     type: Number,
@@ -51,6 +59,11 @@ const userSchema = new mongoose.Schema( {
   photoUrl: {
   type: String,
   default: "https://www.w3schools.com/howto/img_avatar.png",
+  validate(value){
+        if(!validator.isURL(value)){
+            throw new Error("URL is invalid");
+        }
+    }
 },
   bio:{
     type: String,
@@ -58,7 +71,7 @@ const userSchema = new mongoose.Schema( {
     minlength: 2,
     maxlength: 50,
   },
-  Skills:{
+  skills:{
     type: [String],
     default: [],
   }
