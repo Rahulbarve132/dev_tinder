@@ -12,8 +12,8 @@ All API of the Dev Tinder
 
 
 ## connectionRequestRouter
-- POST /connection/send/intrested/:userId
-- POST /connection/send/ignored/:userId
+- POST /connection/send/:status/:userId
+
 - POST /request/review/accept/:requestId
 - POST /request/review/reject/:requestId
 
